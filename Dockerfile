@@ -1,23 +1,9 @@
-FROM ubuntu:trusty
+FROM fbartels/zarafa-base
 MAINTAINER Felix Bartels "felix@host-consultants.de"
-
-# Set the env variable DEBIAN_FRONTEND to noninteractive
-ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update -y
 
-RUN apt-get install -y curl wget ssl-cert
-
-# Downloading and installing Zarafa packages
-RUN mkdir -p /root/packages \
-        && wget --no-check-certificate --quiet \
-        http://download.zarafa.com/zarafa/drupal/download_platform.php?platform=beta/7.1/7.1.13RC1-50405/zcp-7.1.13RC1-50405-ubuntu-14.04-x86_64-forhome.tar.gz -O- \
-	| tar xz -C /root/packages --strip-components=1
-
-WORKDIR /root/packages
-
-# Packing everything into a local repository and installing it
-RUN apt-ftparchive packages . | gzip -9c > Packages.gz && echo "deb file:/root/packages ./" > /etc/apt/sources.list.d/zarafa.list
+RUN apt-get install -y wget ssl-cert
 
 # Installing packages (from here on its the same for devserver5 and the latest release)
 RUN apt-get update -y
@@ -37,7 +23,7 @@ RUN ln -s /usr/share/z-push/z-push-admin.php /usr/sbin/z-push-admin \
 	&& ln -s /usr/share/z-push/z-push-top.php /usr/sbin/z-push-top
 
 # needed for 7.2 packages
-#RUN ln -s /etc/php5/apache2/conf.d/zarafa.ini /etc/php5/cli/conf.d
+RUN ln -s /etc/php5/apache2/conf.d/zarafa.ini /etc/php5/cli/conf.d
 COPY /conf/logrotate-z-push /etc/logrotate.d/z-push
 COPY /conf/apache-z-push.conf /etc/apache2/sites-available/z-push.conf
 RUN a2ensite z-push
